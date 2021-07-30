@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@tonejs/midi"></script>
+    <script src="https://unpkg.com/tone"></script>
+    <script src="Tonejs-Instruments.js"></script>
+    <script src="./lib/p5.js"></script>
+
+    <title>Document</title>
+  </head>
+  <body>
+    <input type="button" id="start" value="start" />
+    <input type="button" id="stop" value="stop" />
+    Time:
+    <input
+      type="range"
+      style="width: 100%"
+      id="timeRange"
+      min="-4"
+      max="10"
+      step="any"
+      value="0"
+    />
+    <span id="timeRangeValue">0</span>
+    <br />
+    noteSeparation:
+    <input
+      type="range"
+      id="noteSeparationRange"
+      min="0"
+      max="40"
+      step="1"
+      value="15"
+    />
+    <span id="noteSeparationRangeValue">0</span> offsetHorizontal:
+    <input
+      type="range"
+      id="offsetHorizontalRange"
+      min="-900"
+      max="600"
+      step="1"
+      value="-600"
+    />
+    <span id="offsetHorizontalRangeValue">0</span> offsetVertical:
+    <input
+      type="range"
+      id="offsetVerticalRange"
+      min="0"
+      max="400"
+      step="1"
+      value="200"
+    />
+    <span id="offsetVerticalRangeValue">0</span> noteHeight:
+    <input
+      type="range"
+      id="noteHeightRange"
+      min="0"
+      max="200"
+      step="1"
+      value="100"
+    />
+    <span id="noteHeightRangeValue">0</span> noteWidth:
+    <input
+      type="range"
+      id="noteWidthRange"
+      min="0"
+      max="40"
+      step="1"
+      value="10"
+    />
+    <span id="noteWidthRangeValue">0</span>
+    <br/>
+    <input type="checkbox" id="showLeds" checked="true"> show leds
+    <input type="checkbox" id="showPartiture" checked="true"> show Partiture
+    <script>
+      document.getElementById("start").addEventListener("click", start);
+      document.getElementById("stop").addEventListener("click", stop);
+      document
+        .getElementById("timeRange")
+        .addEventListener("input", timeRangeChange);
+      document
+        .getElementById("noteSeparationRange")
+        .addEventListener("input", noteSeparationRangeChange);
+      document
+        .getElementById("offsetHorizontalRange")
+        .addEventListener("input", offsetHorizontalRangeChange);
+      document
+        .getElementById("offsetVerticalRange")
+        .addEventListener("input", offsetVerticalRangeChange);
+      document
+        .getElementById("noteHeightRange")
+        .addEventListener("input", noteHeightRangeChange);
+      document
+        .getElementById("noteWidthRange")
+        .addEventListener("input", noteWidthRangeChange);
+      document
+        .getElementById("showLeds")
+        .addEventListener("change", showLedsChange);
+      document
+        .getElementById("showPartiture")
+        .addEventListener("change", showPartitureChange);
+      //document.getElementById('rangeColor').addEventListener('input', colorChange)
+
+      // const synth = new Tone.PolySynth().toDestination();
+
+      /*   const synth = new Tone.PolySynth(5, Tone.Synth, { // changed from 3 to 5
+          oscillator : {
+            type : "sawtooth"
+          }
+        }).toDestination();*/
+
+      const synth = SampleLibrary.load({
+        instruments: "piano",
+      }).toDestination();
+
+      //var synth = new Tone.PolySynth(6, Tone.Sampler).toDestination();
+      // var synth = new Tone.PolySynth(v).toDestination();
+
+      /*     const synth = new Tone.PolySynth(5, Tone.Synth, { // changed from 3 to 5
+          oscillator : {
+            type : "sawtooth"
+          }
+        }).toDestination();*/
+
+      // synth.toDestination();
+      const bemoles = [
+        22, 25, 27, 30, 32, 34, 37, 39, 42, 44, 46, 49, 51, 54, 56, 58, 61, 63,
+        66, 68, 70, 73, 75, 78, 80, 82, 85, 87, 90, 92, 94, 97, 99, 102, 104,
+        106,
+      ];
+
+      const chanelsColors = [
+        { r: 0, g: 0, b: 255 },
+        { r: 0, g: 255, b: 0 },
+      ];
+
+      let timeActual = 0;
+      let noteSeparation = 15;
+      let offsetHorizontal = -600;
+      let offsetVertical = 200;
+      let noteHeight = 100;
+      let noteWidth = 10;
+      let showLeds = true;
+      let showPartiture = true;
+
+      async function load() {
+        const midi = await Midi.fromUrl("./midis/Moonlight.mid");
+        //  const midi = await Midi.fromUrl("./midis/happy_birthday.mid");
+
+        //const midi = await Midi.fromUrl("./midis/happy_birthday.mid");
+        // const midi = await Midi.fromUrl("./midis/Happy-Birthday-To-You-4.mid");
+        return midi;
+      }
+
+      async function loadJson() {
+        let result = await fetch("./midis/simple.json");
+        return await result.json();
+      }
+
+      function jsonMidiToArray(jsonMidi) {
+        let noteArray = [];
+        jsonMidi.tracks.forEach((track) => {
+          const notes = track.notes;
+          notes.forEach((note) => {
+            let objectNote = {
+              time: note.time,
+              note: note.name,
+              velocity: note.velocity,
+              duration: note.duration,
+            };
+            noteArray.push(objectNote);
+          });
+        });
+        return noteArray;
+      }
+      let midi;
+      async function f2() {
+        // load a midi file in the browser
+       //  midi = await load();
+        midi = await loadJson();
+        //the file name decoded from the first track
+        const name = midi.name;
+        console.log(midi);
+        //get the tracks
+        midi.tracks.forEach((track) => {
+          //tracks have notes and controlChanges
+
+          //notes are an array
+          const notes = track.notes;
+          notes.forEach((note) => {
+            //note.midi, note.time, note.duration, note.name
+            //  console.log(note.midi, note.time, note.duration, note.name);
+          });
+
+          //the control changes are an object
+          //the keys are the CC number
+          track.controlChanges[64];
+          //they are also aliased to the CC number's common name (if it has one)
+          /* track.controlChanges.sustain.forEach((cc) => {
+            // cc.ticks, cc.value, cc.time
+           // console.log(cc.ticks, cc.value, cc.time, cc.number);
+          });*/
+          // console.log( track.controlChanges[67])
+          // console.log( track.controlChanges.sustain)
+          //the track also has a channel and instrument
+          //track.instrument.name
+        });
+        // Tone.stop()
+        Tone.start();
+
+        const noteArray = jsonMidiToArray(midi);
+        // use an array of objects as long as the object has a "time" attribute
+        const part = new Tone.Part((time, value) => {
+          // console.log(time);
+          //console.log(time)
+          // the value is an object which contains both the note and the velocity
+          synth.triggerAttackRelease(
+            value.note,
+            value.duration,
+            time,
+            value.velocity
+          );
+        }, noteArray).start(0);
+
+        console.log(noteArray);
+
+        const loop = new Tone.Loop((time) => {
+          // triggered every eighth note.
+          //   console.log(time);
+          timeActual = time;
+          let notes = getNotasOfTime(time, 0);
+
+          /*notes.forEach((note,noteIndex) => {
+              if(!note.isSing)
+                synth.triggerAttackRelease(note.note, note.duration, time, note.velocity);
+              note.isSing=true
+            })*/
+        }, "8n").start(0);
+      }
+      f2();
+
+      function start() {
+        timeActual = 0;
+        Tone.start();
+        Tone.Transport.start();
+        document.getElementById("timeRangeValue").innerHTML =
+          parseFloat(timeActual);
+        document.getElementById("range").value = parseFloat(timeActual);
+        //Tone.Transport.bpm.rampTo(1800, 0);
+      }
+      function stop() {
+        timeActual = 0;
+        Tone.Transport.stop();
+        document.getElementById("timeRangeValue").innerHTML = 0;
+        document.getElementById("range").value = 0;
+      }
+      function timeRangeChange(e) {
+        // console.log(e.target.value)
+        document.getElementById("timeRangeValue").innerHTML =
+          parseFloat(e.target.value).toFixed(4) + "s";
+        timeActual = parseFloat(e.target.value);
+      }
+
+      function noteSeparationRangeChange(e) {
+        // console.log(e.target.value)
+        document.getElementById("noteSeparationRangeValue").innerHTML =
+          e.target.value;
+        noteSeparation = parseFloat(e.target.value);
+      }
+
+      function offsetHorizontalRangeChange(e) {
+        // console.log(e.target.value)
+        document.getElementById("offsetHorizontalRangeValue").innerHTML =
+          e.target.value;
+        offsetHorizontal = parseFloat(e.target.value);
+      }
+
+      function offsetVerticalRangeChange(e) {
+        // console.log(e.target.value)
+        document.getElementById("offsetVerticalRangeValue").innerHTML =
+          e.target.value;
+        offsetVertical = parseFloat(e.target.value);
+      }
+
+      function noteHeightRangeChange(e) {
+        // console.log(e.target.value)
+        document.getElementById("noteHeightRangeValue").innerHTML =
+          e.target.value;
+        noteHeight = parseFloat(e.target.value);
+      }
+
+      function noteWidthRangeChange(e) {
+        // console.log(e.target.value)
+        document.getElementById("noteWidthRangeValue").innerHTML =
+          e.target.value;
+        noteWidth = parseFloat(e.target.value);
+      }
+
+      function showLedsChange(){
+        showLeds = !showLeds
+        
+      }
+      function showPartitureChange(){
+        showPartiture = !showPartiture
+      }
+      function setup() {
+        createCanvas(800, 800);
+      }
+
+      function draw() {
+        background(220);
+        //ellipse(50,50,80,80);
+        if (!midi) return;
+        drawFondo(midi);
+        if(showPartiture) drawPartitura(midi);
+        if(showLeds) drawLeds();
+        drawNameNotes();
+        let ligthDistance = 0;
+        let ligthDistanceIncrement = 0.2;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+        ligthDistance += ligthDistanceIncrement;
+        drawNotesAtTime(midi, ligthDistance);
+      }
+
+      /* getNotasOfTick(tick, numTrack) {
+        let track = this.midi.tracks[numTrack]
+        let notas = track.notes.filter(n => tick >= n.ticks && tick < n.ticks + n.durationTicks)
+        return notas
+    }
+*/
+      function drawLeds() {
+        noFill();
+        stroke("black");
+        for (let i = 0; i < 32; i++) {
+          for (let j = 0; j < 8; j++) {
+            rect(i * noteSeparation, 100 + j * 20 - 50 + noteWidth, noteWidth, noteWidth);
+          }
+        }
+      }
+      function drawNameNotes() {
+        fill("black");
+        noStroke();
+        textSize(10);
+        for (let i = 0; i < 40; i++) {
+          let v = i + 41;
+          text(v, v * noteSeparation + offsetHorizontal, 10);
+          //console.log(Tone.Frequency(69, "midi").toNote())
+          text(
+            Tone.Frequency(v, "midi").toNote(),
+            v * noteSeparation + offsetHorizontal,
+            20
+          );
+
+          /*rect(note.midi*noteSeparation+offsetHorizontal, 
+          ((0)*noteHeiht+offsetVertical) - timeOffset*100, 
+          noteWidth,
+          -noteWidth)*/
+        }
+      }
+      function getNotasOfTime(time, numTrack) {
+        let track = midi.tracks[numTrack];
+        //track.notes.forEach(n=>console.log(time, n.time, n.duration))
+
+        let notas = track.notes.filter(
+          (n) => time >= n.time && time < n.time + n.duration
+        );
+        return notas;
+      }
+
+      piano = [];
+
+      function drawFondo() {
+        stroke("black");
+        line(10, offsetVertical, width - 10, offsetVertical);
+      }
+
+      /*function calculeNoteColorOld(timeActual, note, timeOffset, track) {
+        let pos = timeActual - note.time + timeOffset;
+        let v = pos / note.duration;
+        v = 1 - v;
+        //console.log(note.midi,note.name,note.time,pos,note.duration,v)
+        // v = v%1
+        let h;
+        if (track === 0) {
+          h = 0;
+        } else if (track === 1) {
+          h = 100;
+        }
+        c = HSVtoRGB(h, 1, v);
+        return c;
+      }*/
+
+
+
+      // Re-maps a number from one range to another
+      function remap(x, in_min, in_max, out_min, out_max) {
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+      }
+
+
+      function calculeNoteColor(timeActual, note, timeOffset, track) {
+        let p = timeActual - timeOffset
+       // let v = remap(timeOffset-timeActual, note.time, note.time-note.duration, 0, 1);
+        let v=remap(p, note.time, note.time+note.duration, 0, 1);
+        if(timeOffset ===0)
+          console.log(timeOffset,timeActual,note.time,note.duration,v, p)
+        
+       /* let pos = timeActual - note.time + timeOffset;
+        let v = pos / note.duration;
+        v = 1 - v;
+        //console.log(note.midi,note.name,note.time,pos,note.duration,v)
+        // v = v%1*/
+
+        let h  =0;
+        /*if (track === 0) {
+          h = 0;
+        } else if (track === 1) {
+          h = 100;
+        }*/
+        c = HSVtoRGB(h, 1, v);
+        return c
+      }
+      function drawNotesAtTime(midi, timeOffset) {
+        let notes = getNotasOfTime(timeActual + timeOffset, 0);
+        //  console.log(notes)
+        // calculate color of note
+        noStroke();
+        notes.forEach((note, noteIndex) => {
+          // calcule the color intensity note
+          //  if(note.name==='D4'){
+          //let tam = note.time - note.time + note.duration
+          let c = calculeNoteColor(timeActual, note, timeOffset, 0);
+          fill(c.r, c.g, c.b);
+          //}
+          //note.midi, note.time, note.duration, note.name
+          //  console.log(note.midi, note.time, note.duration, note.name);
+
+          //fill(100*trackIndex)
+          /*rect(note.midi*noteSeparation+offsetHorizontal, 
+        noteHeigth-offsetVertical, 
+        noteWidth,
+        10)*/
+
+          rect(
+            note.midi * noteSeparation + offsetHorizontal,
+            0 * noteHeight + offsetVertical - timeOffset * 100,
+            noteWidth,
+            noteWidth
+          );
+        });
+      }
+      function drawPartitura(midi) {
+        if (midi === undefined) return;
+
+        // fill(0,0,255,50)
+        stroke(0, 30);
+        midi.tracks.forEach((track, trackIndex) => {
+          const notes = track.notes;
+          //fill('blue')
+          notes.forEach((note, noteIndex) => {
+            //note.midi, note.time, note.duration, note.name
+            //  console.log(note.midi, note.time, note.duration, note.name);
+
+            if (!chanelsColors[trackIndex]) {
+              fill(0, 0, 0, 30);
+            } else {
+              fill(
+                chanelsColors[trackIndex].r,
+                chanelsColors[trackIndex].g,
+                chanelsColors[trackIndex].b,
+                30
+              );
+            }
+
+            rect(
+              note.midi * noteSeparation + offsetHorizontal,
+              (+timeActual - note.time) * noteHeight + offsetVertical,
+              noteWidth,
+              -note.duration * noteHeight
+            );
+          });
+        });
+      }
+
+      //stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
+      /* accepts parameters
+       * h  Object = {h:x, s:y, v:z}
+       * OR
+       * h, s, v
+       */
+      https: function HSVtoRGB(h, s, v) {
+        var r, g, b, i, f, p, q, t;
+        if (arguments.length === 1) {
+          (s = h.s), (v = h.v), (h = h.h);
+        }
+        i = Math.floor(h * 6);
+        f = h * 6 - i;
+        p = v * (1 - s);
+        q = v * (1 - f * s);
+        t = v * (1 - (1 - f) * s);
+        switch (i % 6) {
+          case 0:
+            (r = v), (g = t), (b = p);
+            break;
+          case 1:
+            (r = q), (g = v), (b = p);
+            break;
+          case 2:
+            (r = p), (g = v), (b = t);
+            break;
+          case 3:
+            (r = p), (g = q), (b = v);
+            break;
+          case 4:
+            (r = t), (g = p), (b = v);
+            break;
+          case 5:
+            (r = v), (g = p), (b = q);
+            break;
+        }
+        return {
+          r: Math.round(r * 255),
+          g: Math.round(g * 255),
+          b: Math.round(b * 255),
+        };
+      }
+
+      /* accepts parameters
+       * r  Object = {r:x, g:y, b:z}
+       * OR
+       * r, g, b
+       */
+      function RGBtoHSV(r, g, b) {
+        if (arguments.length === 1) {
+          (g = r.g), (b = r.b), (r = r.r);
+        }
+        var max = Math.max(r, g, b),
+          min = Math.min(r, g, b),
+          d = max - min,
+          h,
+          s = max === 0 ? 0 : d / max,
+          v = max / 255;
+
+        switch (max) {
+          case min:
+            h = 0;
+            break;
+          case r:
+            h = g - b + d * (g < b ? 6 : 0);
+            h /= 6 * d;
+            break;
+          case g:
+            h = b - r + d * 2;
+            h /= 6 * d;
+            break;
+          case b:
+            h = r - g + d * 4;
+            h /= 6 * d;
+            break;
+        }
+
+        return {
+          h: h,
+          s: s,
+          v: v,
+        };
+      }
+    </script>
+  </body>
+</html>
