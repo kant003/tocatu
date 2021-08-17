@@ -1,0 +1,18 @@
+{
+  "name": "TocaTu",
+  "version": "1.0.0",
+  "description": "1- Configurar la placa de arduino esp8066\r - Añadir la tarjeta en las preferencias de arduino https://arduino.esp8266.com/stable/package_esp8266com_index.json",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --mode production -w"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "midi-player-js": "^2.0.14",
+    "webpack": "^5.46.0",
+    "webpack-cli": "^4.7.2"
+  }
+}
