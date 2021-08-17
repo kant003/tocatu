@@ -1,6 +1,6 @@
 function jsonMidiToArray(jsonMidi) {
-    let noteArray = [];
-    jsonMidi.tracks.forEach((track) => {
+    const noteArray = [];
+    jsonMidi.tracks.forEach((track,trackIndex) => {
       const notes = track.notes;
       notes.forEach((note) => {
         let objectNote = {
@@ -8,7 +8,7 @@ function jsonMidiToArray(jsonMidi) {
           note: note.name,
           velocity: note.velocity,
           duration: note.duration,
-          track: track
+          trackIndex: trackIndex
         };
         noteArray.push(objectNote);
       });

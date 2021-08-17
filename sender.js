@@ -4,7 +4,6 @@ const columnsToLeftSkip = [28, 25, 22, 19, 16, 13, 11, 8];
 function sendNotesToNeopixel(notesToSend) {
   let tempNotes = [...notesToSend];
 
-  // console.log('to send', notesToSend);
   var test = new Uint8Array(tempNotes.length * 5);
   tempNotes.forEach((note, noteIndex) => {
     if (note.row < 0 || note.row > 16) return;
@@ -41,37 +40,38 @@ function rowcolToNeopixel(row, col) {
     if (row > 7) {
       // sector superior
       dispNumber = 0;
-      numPix = row % 2 === 0 ? -col + 31 + 32 * row : col + 32 * row;
-      //  console.log('secotr izq superior',row, col, numPix)
     } else {
       // sector inferior
       dispNumber = 3;
-      numPix = row % 2 === 0 ? -col + 31 + 32 * row : col + 32 * row;
-      // console.log('secotr izq inferior',row, col, numPix)
     }
+    numPix = row % 2 === 0 ? -col + 31 + 32 * row : col + 32 * row;
   } else {
     // sector derecho
     if (row > 7) {
       // sector superior
       dispNumber = 1;
-      //numPix = (row % 2 === 0) ?  col+32*row : -(col) + 31 + 32 * row;
-      numPix = 224 - row * 32;
-      //console.log(numPix)
-      numPix = row % 2 === 0 ? numPix + 31 + 32 - col : numPix + col - 32;
-      //  console.log('secotr der superior',row, col, numPix)
     } else {
       // sector inferior
       dispNumber = 2;
-      numPix = 224 - row * 32;
-      // console.log(numPix)
-      numPix = row % 2 === 0 ? numPix + 31 + 32 - col : numPix + col - 32;
-
-      // console.log('secotr der inferior',row, col, numPix)
     }
+    numPix = 224 - row * 32;
+    numPix = row % 2 === 0 ? numPix + 31 + 32 - col : numPix + col - 32;
   }
   dispNumber = parseInt(dispNumber);
   numPix = parseInt(numPix);
   return { dispNumber, numPix };
+}
+
+function sendChangeBrightness(brightness){
+  const test = new Uint8Array(10);
+  const order = 255
+  test[0]=order// 255 is for change de brightness
+  test[1]=brightness
+  test[2]=0
+  test[3]=0
+  test[4]=0
+
+  socket.send(test);
 }
 
 function connect() {
