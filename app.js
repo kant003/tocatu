@@ -26,12 +26,14 @@ let notesToSend = [];
 
 let ro = 0;
 let co = 0;
+
+let synth
 async function f2() {
   // load a midi file in the browser
-  //midi = await Midi.fromUrl("./midis/Moonlight.mid");
+  midi = await Midi.fromUrl("./midis/Moonlight.mid");
 
-midi2 = await fetch("./midis/simple.json")
-midi = await midi2.json();
+//midi2 = await fetch("./midis/simple.json")
+//midi = await midi2.json();
 
   midi.tracks.forEach((track, trackIndex) => {
     if (trackIndex === 0) {
@@ -50,6 +52,9 @@ midi = await midi2.json();
       note.trackIndex = trackIndex;
       note.isSing = false;
     });
+
+     synth = new Tone.Synth().toDestination();
+
   });
 
   Tone.Transport.bpm.value = 120;
@@ -60,21 +65,35 @@ midi = await midi2.json();
     const t = Tone.now() - realTime;
     // document.getElementById("time").innerHTML = t;
 
-    value.track.synth.triggerAttackRelease(
+   /* value.track.synth.triggerAttackRelease(
       value.note,
       value.duration,
       time,
       value.velocity
-    );
+    );*/
   }, noteArray).start(0);
 
   console.log(noteArray);
 
   scheduler = Tone.Transport.scheduleRepeat((time) => {
     const t = Tone.now() - realTime;
+    //realTime = one.now() - realTime;
     document.getElementById("timeRangeValue").innerHTML = parseFloat(t);
     document.getElementById("timeRange").value = parseFloat(t);
 
+    midi.tracks.forEach((track, trackIndex) => {
+      track.notes.forEach((value, noteIndex) => {
+
+          synth.triggerAttackRelease(
+            value.note,
+            value.duration,
+            time.reakTime,
+            value.velocity
+          );
+        });
+      });
+
+          
     Tone.Draw.schedule(function () {
       //drawAll()
     }, time); //use AudioContext time of the event
@@ -97,11 +116,13 @@ setInterval((e) => {
 f2();
 
 async function start() {
+  Tone.start()
+  Tone.Transport.start();
+
   realTime = Tone.now() - realTime;
   document.getElementById("time").innerHTML = Tone.now() - realTime;
   isPlaying = true;
 
-  Tone.Transport.start("+0.0");
 }
 
 function stop() {

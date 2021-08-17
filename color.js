@@ -107,7 +107,7 @@ const bemoles = [
       function calculeNoteColor(timeActual, note, timeOffset, trackIndex) {
         let p =  timeActual - note.time
         
-        let v=remap(-timeOffset,  p, p-note.duration, 1, 0);
+        let v=remap(-timeOffset,  p, p-note.duration, 1, 0.2);
 
         let trackColor = tracksColors[trackIndex%tracksColors.length];
         let h = bemoles.includes(note.midi)  ? trackColor.hb : trackColor.hn;
