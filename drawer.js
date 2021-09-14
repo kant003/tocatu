@@ -88,7 +88,7 @@ function drawAll(notesToSend) {
 
     fill(note.r, note.g, note.b);
     rect(
-      note.midi * noteSeparation + offsetHorizontal,
+      note.col * noteSeparation + offsetHorizontal,
       -note.timeOffset * a + offsetVertical,
       noteWidth,
       -10
@@ -96,34 +96,3 @@ function drawAll(notesToSend) {
   })
 }
 
-
-function calculeNotesToDisplay() {
-  let listNotes = []
-
-  for (let i = 0; i <= 15; i++) {
-    listNotes = listNotes.concat(calculeNotesToDisplayAtTime(i))
-  }
-  return listNotes
-}
-
-
-function calculeNotesToDisplayAtTime(i) {
-  const time = Tone.Transport.seconds
-  const space = separation//separation*15
-
-  let x = (space * i / 15) * b // convertimos los numeros del 0 al 15 a una escala de 0 a 0.2*15=3
-
-  let listNotes = []
-
-  midi.tracks.forEach((track, trackIndex) => {
-    const notes = getNotesOfTime(time + x, trackIndex);
-    notes.forEach((note) => {
-
-      const c = calculeNoteColor(time, note, x, trackIndex);
-      const row = Math.round(i)
-
-      listNotes.push({ r: c.r, g: c.g, b: c.b, row: row, col: note.midi, /*disp: dispNumber, numPix: numPix,*/ midi: note.midi, timeOffset: x })
-    });
-  })
-  return listNotes
-}

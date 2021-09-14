@@ -16,7 +16,7 @@
   </head>
   <body>
     
-    <input id="url" value="ws://192.168.1.134:80" />
+    <input id="url" value="ws://192.168.1.136:80" />
     <button id="connect">Conectar</button>
     <button id="disconnect">Desconectar</button>
     time: <span id=time>0</span>
@@ -103,9 +103,9 @@
       type="range"
       id="aRange"
       min="0"
-      max="200"
+      max="800"
       step="1"
-      value="100"
+      value="200"
     />
     <span id="aRangeValue">0</span>
 
@@ -117,7 +117,7 @@
       min="0"
       max="2"
       step="0.01"
-      value="1"
+      value="0.5"
     />
     <span id="bRangeValue">0</span>
 
@@ -126,9 +126,9 @@
       type="range"
       id="bpmRange"
       min="0"
-      max="200"
+      max="100"
       step="1"
-      value="120"
+      value="70"
     />
     <span id="bpmRangeValue">200</span>
 
@@ -142,6 +142,18 @@
       value="10"
     />
     <span id="brightnessRangeValue">0</span>
+
+
+    volume:
+    <input
+      type="range"
+      id="volumeRange"
+      min="0"
+      max="100"
+      step="1"
+      value="10"
+    />
+    <span id="volumeRangeValue">0</span>
 
 
     <br />

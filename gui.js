@@ -23,6 +23,9 @@ document
   .getElementById("brightnessRange")
   .addEventListener("input", brightnessRangeChange);
 document
+  .getElementById("volumeRange")
+  .addEventListener("input", volumeRangeChange);
+document
   .getElementById("separationRange")
   .addEventListener("input", separationRangeChange);
 document
@@ -47,9 +50,11 @@ function timeRangeChange(e) {
   const value = parseFloat(e.target.value);
   document.getElementById("timeRangeValue").innerHTML = value.toFixed(4) + "s";
 
+  //Tone.Transport.start(undefined, value);
+  //Tone.Transport.pause();
+
+  Tone.Transport.seconds= value
   Tone.Transport.start(undefined, value);
-  Tone.Transport.pause();
-  
 
 }
 
@@ -104,7 +109,7 @@ function bpmRangeChange(e) {
     e.target.value;
   bpm = parseFloat(e.target.value);
   Tone.Transport.bpm.value = bpm
-  console.log(bmp)
+  console.log(bpm)
 }
 
 
@@ -115,6 +120,17 @@ function brightnessRangeChange(e) {
 
 
   sendChangeBrightness(brightness);
+}
+
+function volumeRangeChange(e) {
+  document.getElementById("volumeRangeValue").innerHTML =
+    e.target.value;
+  volume = parseFloat(e.target.value);
+
+  instruments.get('piano').volume.value = volume;
+
+  //Tone.Master.mute = false;
+  //Tone.Master.volume = volume;
 }
 
 

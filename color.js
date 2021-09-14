@@ -5,9 +5,9 @@ const bemoles = [
   ];
 
   const tracksColors = [
-    { hn:0, hb:0.2 }, // track 1
-    { hn:0.5, hb:0.5 }, // track 2
-    { hn:0.9, hb:0.1 }, // track 3
+    { hn:0.0, hb:0.87  },// { hn:0.0, hb:0.1  }, // track 1
+    { hn:0.64, hb:0.5  }, // track 2
+    { hn:0.27, hb:0.17 }, // track 3
   ];
 
   
